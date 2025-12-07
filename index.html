@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>职场压力源测评</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF69B4', // 亮粉色 (Hot Pink)
+                        secondary: '#9370DB', // 中紫色 (Medium Purple)
+                        accent: '#FFB6C1', // 浅粉色
+                        dark: '#333333',
+                        graytext: '#666666',
+                        lightbg: '#FFF0F5' // 薰衣草/淡粉背景
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'hero-pattern': 'linear-gradient(135deg, #FFF0F5 0%, #E6E6FA 100%)',
+                    },
+                    fontFamily: {
+                        sans: ['"PingFang SC"', '"Microsoft YaHei"', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'card': '0 8px 30px rgba(255, 105, 180, 0.15)', // 粉色系阴影
+                        'btn': '0 4px 15px rgba(255, 105, 180, 0.4)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', '"PingFang SC"', sans-serif;
+            background: linear-gradient(135deg, #FFF0F5 0%, #F3E8FF 50%, #E0F7FA 100%); /* 粉-紫-淡蓝 梦幻渐变 */
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* --- 侧边栏题目球 --- */
+        .nav-bubble {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #E2E8F0;
+            background-color: white;
+            color: #94A3B8;
+        }
+        .nav-bubble.current {
+            background-color: #FF69B4;
+            color: white;
+            border-color: #FF69B4;
+            transform: scale(1.1);
+            box-shadow: 0 2px 6px rgba(255, 105, 180, 0.4);
+        }
+        .nav-bubble.answered {
+            background-color: #E6E6FA;
+            color: #9370DB;
+            border-color: #D8BFD8;
+        }
+
+        /* 选项交互 */
+        .option-label { transition: all 0.2s ease; border-radius: 10px; }
+        .option-label:hover { 
+            border-color: #FF69B4; 
+            background-color: #FFF0F5; 
+        }
+        .option-input:checked + span { color: #C71585; font-weight: 600; }
+        .option-label.selected { 
+            border-color: #FF69B4; 
+            background-color: #FFF0F5; 
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #FFB6C1; border-radius: 10px; }
+
+        /* 打印样式优化 */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            #report-capture-area { box-shadow: none; border: none; }
+        }
+        
+        /* 简单动画 */
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header id="main-header" class="bg-white/80 backdrop-blur-md shadow-sm py-3 px-6 sticky top-0 z-20">
+        <div class="container mx-auto max-w-5xl flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-heart text-primary text-xl mr-2 animate-pulse"></i>
+                <h1 class="text-base font-bold text-gray-800">职场压力源测评</h1>
+            </div>
+            <div class="text-xs text-secondary font-medium">V 4.0 职场版</div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        
+        <section id="welcome-screen" class="mt-6">
+            <div class="bg-white/90 backdrop-blur rounded-3xl shadow-card p-8 md:p-14 text-center max-w-3xl mx-auto border-2 border-white">
+                
+                <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center shadow-inner">
+                    <i class="fas fa-briefcase text-3xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"></i>
+                </div>
+
+                <div class="mb-10">
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4 tracking-tight">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                            职场压力源测评
+                        </span>
+                    </h1>
+                    <div class="flex justify-center items-center gap-3 mb-6">
+                        <span class="bg-pink-50 text-primary text-xs px-3 py-1 rounded-full font-bold shadow-sm">6大维度</span>
+                        <span class="text-gray-300 text-sm">|</span>
+                        <span class="text-gray-500 text-sm font-medium flex items-center">
+                            <i class="fas fa-user-clock text-green-400 mr-1"></i>
+                            建议用时 10 分钟
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-600 leading-relaxed max-w-xl mx-auto text-sm md:text-base">
+                        工作越来越累，是“事”太多，还是“心”太累？<br>本测评基于心理学压力模型，为你精准定位压力核心，生成专属的“职场生存画像”。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 mb-12 max-w-lg mx-auto">
+                    <div class="p-4 bg-pink-50/50 rounded-2xl border border-pink-100 group hover:bg-pink-50 transition-colors">
+                        <div class="text-xl font-bold text-primary mb-1 group-hover:scale-110 transition-transform">50</div>
+                        <div class="text-xs text-gray-500">精选题目</div>
+                    </div>
+                    <div class="p-4 bg-purple-50/50 rounded-2xl border border-purple-100 group hover:bg-purple-50 transition-colors">
+                        <div class="text-xl font-bold text-secondary mb-1 group-hover:scale-110 transition-transform">6</div>
+                        <div class="text-xs text-gray-500">分析维度</div>
+                    </div>
+                    <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 group hover:bg-blue-50 transition-colors">
+                        <div class="text-xl font-bold text-blue-500 mb-1 group-hover:scale-110 transition-transform">100%</div>
+                        <div class="text-xs text-gray-500">定制建议</div>
+                    </div>
+                </div>
+
+                <button id="start-assessment" class="bg-gradient-to-r from-primary to-secondary text-white text-lg font-bold py-4 px-20 rounded-full shadow-btn hover:shadow-lg hover:-translate-y-1 transition-all w-full md:w-auto transform active:scale-95">
+                    开始测评
+                </button>
+
+                <div class="mt-12 pt-8 border-t border-gray-100 text-left bg-gray-50/50 rounded-xl p-6">
+                    <h3 class="font-bold text-gray-700 mb-4 flex items-center text-sm">
+                        <i class="fas fa-file-contract text-secondary mr-2"></i> 测评说明
+                    </h3>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary mt-1 mr-2 text-xs"></i>
+                            <span>本测评包含50道关于工作状态与心理感受的题目。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary mt-1 mr-2 text-xs"></i>
+                            <span>请凭第一直觉选择最符合您 **最近一个月** 真实情况的选项。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-primary mt-1 mr-2 text-xs"></i>
+                            <span>测评结果仅用于个人复盘参考，我们将严格保护您的隐私。</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="assessment-screen" class="hidden h-[80vh] bg-white rounded-2xl shadow-card overflow-hidden flex flex-col md:flex-row mt-4 border border-gray-100">
+            
+            <div class="w-full md:w-64 bg-gray-50 border-r border-gray-100 flex flex-col flex-shrink-0">
+                <div class="p-4 md:p-5 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-700 flex items-center mb-3 text-sm">
+                        <i class="fas fa-list-ul mr-2 text-secondary"></i> 答题进度
+                    </h3>
+                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                        <span id="progress-text" class="text-primary font-bold">0%</span>
+                        <span>100%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="hidden md:block flex-grow overflow-y-auto p-4 custom-scrollbar">
+                    <div class="grid grid-cols-5 gap-2" id="question-grid">
+                        </div>
+                </div>
+                
+                <div class="hidden md:block p-3 text-center text-xs text-gray-400 border-t border-gray-200 bg-gray-50">
+                    共 50 题
+                </div>
+            </div>
+
+            <div class="flex-grow flex flex-col relative bg-white">
+                
+                <div class="absolute top-3 right-4 md:top-5 md:right-6 z-10">
+                    <div class="flex items-center text-gray-600 bg-pink-50 px-2 py-1 md:px-3 md:py-1.5 rounded-lg border border-pink-100 shadow-sm">
+                        <i class="far fa-clock mr-1 md:mr-2 text-primary text-xs md:text-base"></i>
+                        <span id="timer" class="font-mono font-bold text-sm md:text-lg text-primary">15:00</span>
+                    </div>
+                </div>
+
+                <div class="flex-grow px-6 md:px-16 flex flex-col justify-center max-w-3xl mx-auto w-full overflow-y-auto" id="question-area">
+                    <div id="question-container" class="w-full animate-fade-in mt-12 md:mt-0 pb-4">
+                        </div>
+                </div>
+
+                <div class="h-20 flex-shrink-0 flex items-center justify-center px-6 border-t border-gray-50 bg-white">
+                     <button id="next-btn" class="bg-gray-800 hover:bg-black text-white py-2.5 px-10 rounded-full shadow transition-all text-sm font-bold tracking-wide w-full md:w-auto">
+                        下一题
+                    </button>
+                    <button id="submit-btn" class="hidden bg-gradient-to-r from-primary to-secondary text-white py-2.5 px-10 rounded-full shadow transition-all text-sm font-bold tracking-wide w-full md:w-auto">
+                        生成报告
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="results-screen" class="hidden mt-4">
+            <div id="report-capture-area" class="bg-white rounded-2xl shadow-card p-8 md:p-12 max-w-4xl mx-auto border-t-8 border-primary relative">
+                
+                <div class="text-center border-b border-gray-100 pb-8 mb-8">
+                    <div class="inline-block px-3 py-1 bg-pink-50 text-primary text-xs font-bold rounded mb-3 tracking-wider">个人专属报告</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">职场压力源分析报告</h2>
+                    <p class="text-xs text-gray-400">测评日期：<span id="report-date"></span></p>
+                    
+                    <div class="mt-6 flex justify-center items-end gap-2">
+                        <div class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary" id="total-score">0</div>
+                        <div class="text-gray-400 pb-1 text-xl">/ 100</div>
+                    </div>
+                    <div id="score-title" class="text-lg font-bold mt-2 text-gray-700">分析中...</div>
+                    <div id="score-description" class="mt-4 text-gray-600 bg-gray-50 p-4 rounded text-sm max-w-2xl mx-auto leading-relaxed text-justify border-l-4 border-secondary">
+                        正在生成深度解读...
+                    </div>
+                </div>
+
+                <div class="mb-10 flex justify-center">
+                    <div class="w-full md:w-3/4 h-[380px]">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="mb-10">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-primary pl-3 flex items-center">
+                        六大职场维度深度解析
+                    </h3>
+                    <div class="space-y-6" id="dimensions-analysis">
+                        </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-6 border border-pink-100">
+                    <h3 class="font-bold text-gray-800 mb-4 flex items-center text-base">
+                        <i class="fas fa-gift text-primary mr-2"></i> 您的职场生存锦囊 (定制版)
+                    </h3>
+                    <ul id="improvement-suggestions" class="space-y-3 text-sm text-gray-600 leading-relaxed">
+                        </ul>
+                </div>
+
+                <div class="text-center mt-8 text-xs text-gray-300">
+                    © 2025 职场压力源测试 | 仅供个人参考
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-center gap-4 mt-8 pb-12 no-print px-4">
+                <button id="restart-btn" class="px-8 py-2.5 border border-gray-300 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition text-sm bg-white">
+                    重新测试
+                </button>
+                <button id="save-btn" class="px-8 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-full shadow hover:shadow-lg transition font-bold flex items-center justify-center text-sm">
+                    <i class="fas fa-download mr-2"></i> 保存报告
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 1. 核心配置：六大维度定义 ---
+        const pressureDimensions = {
+            workload: { 
+                name: "工作负荷", 
+                description: "评估“事”多不多。高分意味着你的时间表像俄罗斯方块一样严丝合缝，可能承担了过多“隐形工作”。" 
+            },
+            autonomy: { 
+                name: "角色自主", 
+                description: "评估“权”大不大。高分意味着你可能处于“工具人”困境，微观管理或职责不清正在扼杀你的主动性。" 
+            },
+            relationship: { 
+                name: "人际沟通", 
+                description: "评估“人”好不好处。高分意味着你可能正充当“情绪垃圾桶”，周旋于复杂关系或缺乏支持的环境中。" 
+            },
+            career: { 
+                name: "职业发展", 
+                description: "评估“奔头”足不足。高分代表“职场迷雾感”，看不清晋升路径或担心被边缘化，这种迷茫比忙碌更累人。" 
+            },
+            balance: { 
+                name: "生活平衡", 
+                description: "评估“边界”清不清。高分意味着你是“全天候待机者”，生活和工作没有了物理隔绝，急需停机维护。" 
+            },
+            health: { 
+                name: "身心反馈", 
+                description: "评估“内耗”重不重。高分代表“躯体化预警”，失眠、易怒、疲惫都是身体在替你发出的求救信号。" 
+            }
+        };
+
+        // --- 2. 建议库 ---
+        const suggestionPool = {
+            workload: [
+                "学会'课题分离'，分清哪些是必须你做的，哪些是可以外包或拒绝的。",
+                "试着记录一周的时间开销，找出那些吞噬你时间的'低价值琐事'。",
+                "不要追求完美的'做完'，要追求核心的'做对'，学会抓大放小。"
+            ],
+            autonomy: [
+                "主动与上级对齐期望，把'被动执行'转化为'主动提案'。",
+                "在模糊的指令下，尝试制定SOP（标准作业程序）来保护自己的边界。",
+                "如果是微观管理，试着主动汇报进度，用过度沟通换取信任空间。"
+            ],
+            relationship: [
+                "专注于'事'而非'人'，把难搞的同事当成打怪升级的NPC。",
+                "寻找你的职场盟友，哪怕只有一个能说真心话的人，压力也会减半。",
+                "遇到情绪化沟通时，强制自己暂停3分钟再回复，避免情绪卷入。"
+            ],
+            career: [
+                "不要只盯着公司内部的晋升，去市场上看看你的技能值多少钱。",
+                "找一个行业内的导师或榜样，看看他们是如何度过瓶颈期的。",
+                "把注意力放回技能本身，每天花30分钟学习新东西，对抗无力感。"
+            ],
+            balance: [
+                "设置一个硬性的'下班仪式'，比如换衣服或听歌，告诉大脑切换模式。",
+                "周末尝试关闭工作消息提醒，天塌不下来，把自己还给自己。",
+                "培养一个与工作完全无关的爱好，比如运动或手工，作为精神避难所。"
+            ],
+            health: [
+                "身体比大脑更诚实。如果感到莫名的烦躁，请立刻停下来深呼吸。",
+                "保证每晚7小时的睡眠，这是修复情绪免疫系统最廉价的方式。",
+                "允许自己'低电量运行'几天，不要强迫自己时刻保持亢奋。"
+            ],
+            general: [
+                "保持规律作息，充足的睡眠是抵御职场压力的第一道防线。",
+                "学会'课题分离'，分清哪些是你的责任，哪些是别人的课题。",
+                "每周给自己安排一次完全不工作的'放空时间'。"
+            ]
+        };
+
+        // --- 3. 题库 (50题) ---
+        const rawQuestions = [
+            // 第一部分：工作负荷
+            { id: 1, text: "我的工作量经常超出我能负荷的范围。", dimension: "workload" },
+            { id: 2, text: "为了按时完成任务，我经常需要加班或把工作带回家。", dimension: "workload" },
+            { id: 3, text: "工作中经常出现突发状况，打乱原本的计划。", dimension: "workload" },
+            { id: 4, text: "每天的工作节奏太快，让我几乎没有喘息的时间。", dimension: "workload" },
+            { id: 5, text: "我需要在极短的时间内处理大量的信息或数据。", dimension: "workload" },
+            { id: 6, text: "由于人手不足，我经常需要承担不属于我职责范围的工作。", dimension: "workload" },
+            { id: 7, text: "在这个岗位上，我时刻感到时间不够用。", dimension: "workload" },
+            { id: 8, text: "工作对我的脑力或体力消耗极大，让我精疲力竭。", dimension: "workload" },
+
+            // 第二部分：角色自主
+            { id: 9, text: "我对自己的岗位职责和考核标准不够清晰。", dimension: "autonomy" },
+            { id: 10, text: "我经常接到来自不同领导的、互相冲突的工作指令。", dimension: "autonomy" },
+            { id: 11, text: "我感觉自己在工作中没有什么决策权，只能被动执行。", dimension: "autonomy" },
+            { id: 12, text: "上级对我管得太细（微观管理），让我觉得不受信任。", dimension: "autonomy" },
+            { id: 13, text: "我不清楚领导对我工作的期望到底是什么。", dimension: "autonomy" },
+            { id: 14, text: "在处理工作中遇到的问题时，我缺乏必要的资源或权限。", dimension: "autonomy" },
+            { id: 15, text: "我感觉自己像一颗“螺丝钉”，工作内容单调且重复。", dimension: "autonomy" },
+            { id: 16, text: "公司的政策或流程经常变动，让我无所适从。", dimension: "autonomy" },
+
+            // 第三部分：人际沟通
+            { id: 17, text: "我感到很难获得上级的支持和理解。", dimension: "relationship" },
+            { id: 18, text: "同事之间缺乏必要的协作，经常出现推诿扯皮。", dimension: "relationship" },
+            { id: 19, text: "我觉得在公司里即使努力工作，也不会被看到或认可。", dimension: "relationship" },
+            { id: 20, text: "办公室的氛围比较压抑，大家很少真诚交流。", dimension: "relationship" },
+            { id: 21, text: "我需要花费大量精力去处理复杂的人际关系。", dimension: "relationship" },
+            { id: 22, text: "当我遇到工作困难时，很难找到人求助。", dimension: "relationship" },
+            { id: 23, text: "我感觉自己被团队孤立，或者很难融入集体。", dimension: "relationship" },
+            { id: 24, text: "与某些特定同事或客户的沟通让我感到非常心累。", dimension: "relationship" },
+
+            // 第四部分：职业发展
+            { id: 25, text: "我看不到自己在目前公司的晋升空间或发展路径。", dimension: "career" },
+            { id: 26, text: "我经常担心自己会失业，或者被边缘化。", dimension: "career" },
+            { id: 27, text: "目前的工作无法让我学到新技能，感觉自己在原地踏步。", dimension: "career" },
+            { id: 28, text: "即使我表现出色，薪资待遇也没有相应的提升。", dimension: "career" },
+            { id: 29, text: "我觉得目前的行业或公司前景堪忧。", dimension: "career" },
+            { id: 30, text: "我对自己的职业未来感到迷茫，不知道下一步该怎么走。", dimension: "career" },
+            { id: 31, text: "公司内部的竞争非常激烈，让我时刻处于紧绷状态。", dimension: "career" },
+            { id: 32, text: "我觉得自己的才能在目前的工作中被浪费了。", dimension: "career" },
+
+            // 第五部分：生活平衡
+            { id: 33, text: "下班后或周末，我仍然需要随时回复工作消息。", dimension: "balance" },
+            { id: 34, text: "想到第二天要上班，我会在前一天晚上感到焦虑。", dimension: "balance" },
+            { id: 35, text: "工作耗尽了我的精力，让我无暇顾及家庭或朋友。", dimension: "balance" },
+            { id: 36, text: "我很难在休假时完全放松，脑子里还在想工作的事。", dimension: "balance" },
+            { id: 37, text: "因为工作原因，我不得不牺牲自己的兴趣爱好。", dimension: "balance" },
+            { id: 38, text: "我的家人或朋友抱怨我在工作上花的时间太多。", dimension: "balance" },
+            { id: 39, text: "我感觉生活被工作填满，失去了属于自己的空间。", dimension: "balance" },
+            { id: 40, text: "即使身体不舒服，我也不敢轻易请假。", dimension: "balance" },
+
+            // 第六部分：身心反馈
+            { id: 41, text: "最近我经常感到莫名的烦躁或易怒。", dimension: "health" },
+            { id: 42, text: "早上醒来时，我感到疲惫，不想去公司。", dimension: "health" },
+            { id: 43, text: "我经常感到头痛、胃痛或颈椎不舒服。", dimension: "health" },
+            { id: 44, text: "我最近的睡眠质量变差，入睡困难或多梦易醒。", dimension: "health" },
+            { id: 45, text: "我对工作失去了热情，只是在机械地应付。", dimension: "health" },
+            { id: 46, text: "面对新的工作任务，我第一反应往往是抗拒或害怕。", dimension: "health" },
+            { id: 47, text: "我感觉自己的记忆力在下降，经常丢三落四。", dimension: "health" },
+            { id: 48, text: "我变得比以前更敏感，容易因为小事感到委屈。", dimension: "health" },
+            { id: 49, text: "我经常感到孤独，觉得没有人能理解我的压力。", dimension: "health" },
+            { id: 50, text: "我觉得这种高压状态如果持续下去，我会崩溃。", dimension: "health" }
+        ];
+
+        // --- 4. 变量与DOM ---
+        let assessmentQuestions = [];
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let timerInterval;
+        let remainingTime = 15 * 60; // 15分钟
+
+        const els = {
+            welcome: document.getElementById('welcome-screen'),
+            assessment: document.getElementById('assessment-screen'),
+            results: document.getElementById('results-screen'),
+            startBtn: document.getElementById('start-assessment'),
+            grid: document.getElementById('question-grid'),
+            questionContainer: document.getElementById('question-container'),
+            nextBtn: document.getElementById('next-btn'),
+            submitBtn: document.getElementById('submit-btn'),
+            timer: document.getElementById('timer'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            restartBtn: document.getElementById('restart-btn'),
+            saveBtn: document.getElementById('save-btn'),
+            dateSpan: document.getElementById('report-date')
+        };
+
+        // --- 5. 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            els.startBtn.addEventListener('click', startAssessment);
+            els.nextBtn.addEventListener('click', nextQuestion);
+            els.submitBtn.addEventListener('click', submitAssessment);
+            els.restartBtn.addEventListener('click', restart);
+            els.saveBtn.addEventListener('click', saveReportImage);
+            
+            // 默认题目顺序
+            assessmentQuestions = [...rawQuestions];
+        });
+
+        // --- 6. 流程控制 ---
+        function startAssessment() {
+            els.welcome.classList.add('hidden');
+            els.assessment.classList.remove('hidden');
+            renderGrid();
+            loadQuestion(0);
+            startTimer();
+        }
+
+        function renderGrid() {
+            els.grid.innerHTML = '';
+            assessmentQuestions.forEach((_, idx) => {
+                const bubble = document.createElement('div');
+                bubble.className = `nav-bubble`;
+                bubble.innerText = idx + 1;
+                bubble.onclick = () => {
+                    if (answers[idx] !== undefined || idx === currentQuestionIndex) {
+                        loadQuestion(idx);
+                    }
+                };
+                els.grid.appendChild(bubble);
+            });
+            updateGridStatus();
+        }
+
+        function updateGridStatus() {
+            const bubbles = els.grid.children;
+            for (let i = 0; i < bubbles.length; i++) {
+                bubbles[i].className = 'nav-bubble'; 
+                if (answers[i] !== undefined) bubbles[i].classList.add('answered');
+                if (i === currentQuestionIndex) {
+                    bubbles[i].classList.add('current');
+                    bubbles[i].classList.remove('answered');
+                    bubbles[i].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+            const answeredCount = Object.keys(answers).length;
+            const percent = Math.round((answeredCount / assessmentQuestions.length) * 100);
+            els.progressBar.style.width = `${percent}%`;
+            els.progressText.innerText = `${percent}%`;
+        }
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const q = assessmentQuestions[index];
+            
+            const html = `
+                <div class="mb-6 animate-fade-in">
+                    <span class="inline-block bg-pink-100 text-primary text-xs font-bold px-2 py-1 rounded mb-3">
+                        第 ${index + 1} 题
+                    </span>
+                    <h3 class="text-lg font-bold text-gray-800 leading-normal">
+                        ${q.text}
+                    </h3>
+                </div>
+                <div class="space-y-3">
+                    ${[1,2,3,4,5].map((val, i) => {
+                        const labels = ["非常不同意", "不太同意", "不确定", "比较同意", "非常同意"];
+                        const checked = answers[index] === val ? 'checked' : '';
+                        const selectedClass = answers[index] === val ? 'selected' : '';
+                        return `
+                        <label class="option-label flex items-center p-3 border border-gray-200 bg-white cursor-pointer ${selectedClass}">
+                            <input type="radio" name="q" value="${val}" ${checked} class="option-input w-4 h-4 text-primary focus:ring-primary border-gray-300 accent-pink-500" onchange="selectAnswer(${index}, ${val})">
+                            <span class="ml-3 text-gray-600 text-sm">${labels[i]}</span>
+                        </label>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            els.questionContainer.innerHTML = html;
+            updateGridStatus();
+            
+            if (index === assessmentQuestions.length - 1) {
+                els.nextBtn.classList.add('hidden');
+                els.submitBtn.classList.remove('hidden');
+            } else {
+                els.nextBtn.classList.remove('hidden');
+                els.submitBtn.classList.add('hidden');
+            }
+        }
+
+        window.selectAnswer = (index, val) => {
+            answers[index] = val;
+            updateGridStatus();
+            loadQuestion(index);
+            if (index < assessmentQuestions.length - 1) {
+                setTimeout(() => {
+                    if(currentQuestionIndex === index) nextQuestion();
+                }, 200);
+            }
+        };
+
+        function nextQuestion() {
+            if (currentQuestionIndex < assessmentQuestions.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+            }
+        }
+
+        function startTimer() {
+            els.timer.innerText = "15:00";
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                const m = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+                const s = (remainingTime % 60).toString().padStart(2, '0');
+                els.timer.innerText = `${m}:${s}`;
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    alert("时间到，将自动生成报告！");
+                    submitAssessment();
+                }
+            }, 1000);
+        }
+
+        function submitAssessment() {
+            clearInterval(timerInterval);
+            const results = calculateResults();
+            els.assessment.classList.add('hidden');
+            els.results.classList.remove('hidden');
+            els.dateSpan.innerText = new Date().toLocaleDateString();
+            renderReport(results);
+            window.scrollTo(0, 0);
+        }
+
+        function calculateResults() {
+            const dims = JSON.parse(JSON.stringify(pressureDimensions));
+            for(let k in dims) { dims[k].total = 0; dims[k].count = 0; }
+            
+            assessmentQuestions.forEach((q, i) => {
+                const score = answers[i] || 3; // 未答题目默认给3分
+                if(dims[q.dimension]) {
+                    dims[q.dimension].total += score;
+                    dims[q.dimension].count++;
+                }
+            });
+            
+            let totalScore = 0;
+            let totalCount = 0;
+            let dimArr = [];
+            
+            for(let k in dims) {
+                if(dims[k].count > 0) {
+                    const avg = dims[k].total / dims[k].count;
+                    dims[k].score10 = Math.round(avg * 2 * 10) / 10; 
+                    totalScore += dims[k].total;
+                    totalCount += dims[k].count;
+                    dimArr.push({ name: dims[k].name, value: dims[k].score10, key: k });
+                }
+            }
+            
+            const finalScore = Math.round(((totalScore - 50) / (250 - 50)) * 100);
+            
+            return {
+                overall: Math.max(0, finalScore),
+                dimData: dims,
+                dimArr: dimArr
+            };
+        }
+
+        function getRandomSuggestion(dimensionKey) {
+            const list = suggestionPool[dimensionKey];
+            if (!list || list.length === 0) return suggestionPool['general'][0];
+            const randIndex = Math.floor(Math.random() * list.length);
+            return list[randIndex];
+        }
+
+        function renderReport(res) {
+            document.getElementById('total-score').innerText = res.overall;
+            let level, desc;
+            
+            if (res.overall <= 25) {
+                level = "松弛感·天选打工人";
+                desc = "状态：满电续航。你的心态稳如“卡皮巴拉”。工作只是生活的一部分，你拥有极佳的边界感和掌控力。这种松弛感是职场最奢侈的奢侈品，请继续保持！";
+            } else if (res.overall <= 50) {
+                level = "且行且看·隐形耗电体";
+                desc = "状态：低电量运行。表面上你情绪稳定，但内心常有“下班后不想说话”的疲惫感。你像一块正在缓慢漏电的电池。是时候给自己安排一次短暂的“停机维护”了。";
+            } else if (res.overall <= 75) {
+                level = "高压过载·职场特种兵";
+                desc = "状态：过热预警。你可能正处于职业生涯的“至暗时刻”或“爬坡期”。责任感让你扛下了KPI和过量的情绪垃圾。你的坚强令人心疼，但请记住：身体的账单，总是最贵的。";
+            } else {
+                level = "即将熔断·超级计算机";
+                desc = "状态：紧急制动。警报拉响！现在的环境可能不仅在消耗你的时间，更在透支你的健康。这不是你不够努力，而是系统“有毒”。请立刻、马上按下暂停键！";
+            }
+            
+            document.getElementById('score-title').innerHTML = level;
+            document.getElementById('score-description').innerText = desc;
+            
+            new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: res.dimArr.map(d => d.name),
+                    datasets: [{
+                        label: '压力指数',
+                        data: res.dimArr.map(d => d.value),
+                        backgroundColor: 'rgba(255, 105, 180, 0.2)',
+                        borderColor: '#FF69B4',
+                        pointBackgroundColor: '#9370DB',
+                        pointBorderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        r: { 
+                            min: 0, 
+                            max: 10, 
+                            ticks: { display: false }, 
+                            pointLabels: { font: { size: 12, family: "'PingFang SC'" }, color: '#333' } 
+                        } 
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const dimContainer = document.getElementById('dimensions-analysis');
+            dimContainer.innerHTML = '';
+            res.dimArr.forEach(d => {
+                const borderClass = d.value >= 7 ? 'border-primary' : 'border-gray-200';
+                const textClass = d.value >= 7 ? 'text-primary' : 'text-gray-500';
+                const warningTag = d.value >= 7 ? '<span class="text-xs bg-red-100 text-red-500 px-2 py-0.5 rounded ml-2">高压</span>' : '';
+                
+                dimContainer.innerHTML += `
+                    <div class="p-4 rounded border-l-4 shadow-sm bg-white ${borderClass} border-t border-b border-r animate-fade-in">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-gray-800 text-lg flex items-center">${d.name} ${warningTag}</span>
+                            <span class="font-bold ${textClass} text-xl">${d.value}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">${res.dimData[d.key].description}</p>
+                    </div>
+                `;
+            });
+
+            const sugContainer = document.getElementById('improvement-suggestions');
+            sugContainer.innerHTML = '';
+            
+            const topDims = [...res.dimArr].sort((a,b) => b.value - a.value).slice(0, 3);
+            
+            if (topDims[0].value < 5) {
+               sugContainer.innerHTML = `
+                    <li class="flex items-start"><i class="fas fa-star text-yellow-400 mt-1 mr-2"></i><span>状态极佳！${getRandomSuggestion('general')}</span></li>
+                    <li class="flex items-start"><i class="fas fa-star text-yellow-400 mt-1 mr-2"></i><span>${getRandomSuggestion('general')}</span></li>
+               `;
+            } else {
+                topDims.forEach(d => {
+                    const suggestionText = getRandomSuggestion(d.key);
+                    sugContainer.innerHTML += `
+                        <li class="flex items-start p-2 hover:bg-pink-50 rounded transition-colors">
+                            <span class="text-xs font-bold bg-secondary text-white px-2 py-0.5 rounded mr-2 mt-0.5 whitespace-nowrap">${d.name}</span>
+                            <span>${suggestionText}</span>
+                        </li>
+                    `;
+                });
+            }
+        }
+
+        function saveReportImage() {
+            const btn = els.saveBtn;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
+            btn.disabled = true;
+            html2canvas(document.getElementById('report-capture-area'), {
+                scale: 2, useCORS: true, backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `职场生存画像_${new Date().getTime()}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                btn.innerHTML = '保存成功';
+                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+            });
+        }
+
+        function restart() { location.reload(); }
+    </script>
+</body>
+</html>
